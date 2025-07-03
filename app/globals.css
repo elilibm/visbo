@@ -1,0 +1,144 @@
+@import "tailwindcss";
+
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'DM Sans', sans-serif;
+  }
+}
+
+@layer components {
+  .hero-section {
+    @apply h-screen flex flex-col justify-center items-center text-white text-center px-4 relative bg-transparent;
+  }
+  
+
+  .hero-title {
+    @apply text-7xl font-semibold mb-4; 
+    font-style: oblique 10deg; 
+  }
+
+  .hero-subtitle {
+    @apply text-xl font-light mb-6;
+  }
+
+  .hero-button {
+    @apply bg-white text-black py-2 px-5 rounded-full border border-transparent hover:bg-white/10 hover:text-white hover:border-white transition;
+  }
+  
+
+  .down-arrow {
+    @apply absolute bottom-6 animate-bounce text-white text-2xl;
+  }
+
+  .how-it-works {
+    @apply bg-white text-gray-800 py-20 px-4;
+  }
+
+  .how-title-container {
+    @apply max-w-3xl mx-auto text-center space-y-4;
+  }
+
+  .how-title {
+    @apply text-3xl font-medium;
+  }
+
+  .how-description {
+    @apply text-base font-light;
+  }
+
+  .how-buttons {
+    @apply flex justify-center gap-4 mt-4;
+  }
+  .login-link {
+    @apply absolute top-7 right-7 font-light text-white underline hover:opacity-80 transition px-4 py-2 cursor-pointer z-30;
+  }
+  
+
+  .vision-bar {
+    @apply rounded-3xl w-full px-8 py-10 flex flex-col sm:flex-row justify-between items-center text-white relative overflow-hidden;
+    --x: 50%;
+    --y: 50%;
+    pointer-events: auto;
+    opacity: 0.95;
+    height: auto;
+  
+    background:
+      radial-gradient(circle at 10% 30%, #54C9DB, transparent 60%),
+      radial-gradient(circle at 20% 20%, #4747BA, transparent 80%),
+      radial-gradient(circle at 70% 80%, #AB4AAE, transparent 40%),
+      radial-gradient(circle at 5% 80%, #FB739E, transparent 60%),
+      radial-gradient(circle at 85% 30%, #FB739E, transparent 60%);
+    background-color: #ffffff;
+  }
+
+.vision-title {
+  @apply text-2xl sm:text-3xl font-semibold text-center sm:text-left mb-4 sm:mb-0;
+}
+
+.vision-button {
+  @apply px-6 py-2 border-2 border-white rounded-full text-white hover:bg-white hover:text-pink-500 transition;
+}
+  .landing-section {
+    @apply mx-auto max-w-5xl px-6 py-24 space-y-24;
+  }
+  
+  .step-row {
+    @apply flex flex-col-reverse md:flex-row items-center justify-between gap-10;
+  }
+  
+  .step-row.reverse {
+    @apply flex-col-reverse md:flex-row-reverse;
+  }
+  
+  .step-text {
+    @apply w-full md:w-1/2 text-left;
+  }
+  
+  .step-title {
+    @apply text-3xl font-medium;
+  }
+  
+  .step-description {
+    @apply pt-4 text-base font-light;
+  }
+  
+  .step-image {
+    @apply w-full md:w-[40%] max-w-xs mx-auto;
+  }
+  
+  
+
+}
+#gradient-bg {
+  --x: 50%;
+  --y: 50%;
+  pointer-events: auto;
+  opacity: 0.9;
+  background:
+   radial-gradient(circle at var(--x) var(--y), rgba(255, 255, 255, 0.1), transparent 60%),
+    radial-gradient(circle at 20% 30%, #AB4AAE, transparent 40%),
+    radial-gradient(circle at 40% 60%, #AB4AAE, transparent 40%),
+    radial-gradient(circle at 80% 50%, #4747BA, transparent 60%),
+    radial-gradient(circle at 5% 60%, #54C9DB, transparent 30%),
+    radial-gradient(circle at 20% 10%, #4747BA, transparent 60%),
+    radial-gradient(circle at 50% 70%, #4747BA, transparent 60%),
+    radial-gradient(circle at 90% 90%, #54C9DB, transparent 30%),
+    radial-gradient(circle at 50% 30%, #54C9DB, transparent 30%),
+    radial-gradient(circle at 10% 90%, #FB739E, transparent 30%),
+    radial-gradient(circle at 90% 10%, #FB739E, transparent 60%);
+  background-color: #ffffff;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  transition: background 0.3s ease;
+}
+
+/* HOMEEEEEE SELECT CARD PAGE */ 
+
+.select-card-title {
+  @apply text-3xl font-medium text-white; 
+}
