@@ -1,0 +1,5 @@
+{
+  "/api/generate/route": "app/api/generate/route.js",
+  "/home/page": "app/home/page.js",
+  "/vision-board/page": "app/vision-board/page.js"
+}
