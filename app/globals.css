@@ -41,9 +41,19 @@
   }
 
   .how-title {
-    @apply text-3xl font-medium;
+    @apply text-3xl font-semibold;
   }
 
+  .title {
+    @apply text-5xl font-medium;
+  }
+  .heading {
+    @apply text-3xl font-light;
+  }
+  .description {
+    @apply text-base font-light;
+  }
+  
   .how-description {
     @apply text-base font-light;
   }
