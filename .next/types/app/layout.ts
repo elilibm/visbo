@@ -1,4 +1,4 @@
-// File: /Users/valavanmarakathalingasivam/Projects/visbo-1/app/layout.tsx
+// File: /Users/elilimarakathalingasivam/visbo/app/layout.tsx
 import * as entry from '../../../app/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

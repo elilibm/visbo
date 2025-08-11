@@ -1,4 +1,4 @@
-// File: /Users/valavanmarakathalingasivam/Projects/visbo-1/app/vision-board/page.tsx
+// File: /Users/elilimarakathalingasivam/visbo/app/vision-board/page.tsx
 import * as entry from '../../../../app/vision-board/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

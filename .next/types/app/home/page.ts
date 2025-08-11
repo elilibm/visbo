@@ -1,4 +1,4 @@
-// File: /Users/valavanmarakathalingasivam/Projects/visbo-1/app/home/page.tsx
+// File: /Users/elilimarakathalingasivam/visbo/app/home/page.tsx
 import * as entry from '../../../../app/home/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
