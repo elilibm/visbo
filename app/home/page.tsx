@@ -8,13 +8,13 @@ export default function HomePage() {
   return (
     <div className="relative w-screen min-h-screen bg-white overflow-hidden">
       <div
-        className="absolute inset-0 bg-no-repeat pt-[70%]"
-        style={{
-          backgroundImage: "url('/img/light-bulb.png')",
-          backgroundSize: "70%",
-          backgroundPosition: "-20% -5% " 
-        }}
-      ></div>
+  className="absolute inset-0 bg-no-repeat 
+             sm:pt-[70%] sm:bg-[length:70%] sm:bg-[position:-20%_-5%]
+             pt-[20%] bg-[length:110%] bg-center"
+  style={{
+    backgroundImage: "url('/img/light-bulb.png')"
+  }}
+></div>
 
       <div className="absolute top-6 left-6 z-50">
         <svg
@@ -47,12 +47,12 @@ export default function HomePage() {
   {/* ACTION CARDS */}
   <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-7 max-w-3xl">
     <HomeCard
-      href="/generate"
+      href="/step-2"
       title="Generate"
       subtitle="Create your vision instantly."
     />
     <HomeCard
-      href="/boards"
+      href="/step-2"
       title="All Boards"
       subtitle="Where past, present and future meet."
     />

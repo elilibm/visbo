@@ -1,5 +1,5 @@
 {
-  "/home/page": "app/home/page.js",
-  "/vision-board/page": "app/vision-board/page.js",
-  "/page": "app/page.js"
+  "/step-2/page": "app/step-2/page.js",
+  "/page": "app/page.js",
+  "/home/page": "app/home/page.js"
 }
