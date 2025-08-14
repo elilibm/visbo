@@ -1,5 +1,4 @@
 {
-  "/step-2/page": "app/step-2/page.js",
   "/page": "app/page.js",
   "/home/page": "app/home/page.js"
 }
