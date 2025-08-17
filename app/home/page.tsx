@@ -47,7 +47,7 @@ export default function HomePage() {
   {/* ACTION CARDS */}
   <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-7 max-w-3xl">
     <HomeCard
-      href="/step-2"
+      href="/step-1"
       title="Generate"
       subtitle="Create your vision instantly."
     />
