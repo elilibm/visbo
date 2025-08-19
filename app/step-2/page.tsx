@@ -1,9 +1,9 @@
+// app/step-2/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
-// default list used only if nothing was chosen in Step 1
 const defaultCategories: string[] = [
   "personal growth",
   "health and fitness",
@@ -19,31 +19,22 @@ export default function Page() {
   const params = useSearchParams();
   const router = useRouter();
 
-  // categories now seeded from step 1 or defaults
   const [categories, setCategories] = useState<string[]>(defaultCategories);
 
   useEffect(() => {
     let picked: unknown = null;
-
-    // 1) query param
     const raw = params.get("cats");
     try {
       if (raw) picked = JSON.parse(decodeURIComponent(raw));
     } catch {}
-
-    // 2) localStorage fallback
     if (!Array.isArray(picked) || picked.length === 0) {
       try {
         const saved = localStorage.getItem("visbo:selectedCategories");
         if (saved) picked = JSON.parse(saved);
       } catch {}
     }
-
-    // 3) validate
     if (Array.isArray(picked) && picked.length > 0) {
-      const cleaned = picked
-        .map((s) => String(s).trim().toLowerCase())
-        .filter(Boolean);
+      const cleaned = picked.map((s) => String(s).trim().toLowerCase()).filter(Boolean);
       if (cleaned.length > 0) setCategories(cleaned);
     } else {
       setCategories(defaultCategories);
@@ -66,48 +57,29 @@ export default function Page() {
   const css = (s?: string) =>
     s === "valid" ? "bg-[#C4EDEE]" : s === "invalid" ? "bg-[#FFDFE9]" : "bg-[#F5F5F5]";
 
-  // Build the final prompt and navigate to /board
-  const handleSubmit = async () => {
+  // Save and go to Step 3 (Title)
+  const handleNext = async () => {
     setLoading(true);
     try {
+      // Build a prompt as before (kept for backwards compatibility / fallback)
       const bullets = categories.map((cat) => {
         const goal = goals[cat]?.trim() || "no specific goal provided";
         return `• ${cat.toUpperCase()}: ${goal}`;
       });
 
       const prompt = [
-        "Generate a single high-resolution **vision board collage** for the year 2025.",
-        "Design the layout like a real world **handmade vision board or scrapbook**, placed on a neutral textured background such as corkboard or craft paper.",
-        "",
-        "The style should be cozy, aesthetic, and modern: pastel tones, paper cutouts, Polaroid style frames, masking tape, doodles, magazine clippings, and organic torn paper edges. Use a matte finish and soft lighting.",
-        "",
-        "Each category below must be visually represented using 2 to 3 symbolic or literal visuals per category such as scenes, objects, and symbols.",
-        "Draw inspiration from real world metaphors, not generic clipart.",
-        "",
-        "Do not use any text in the image except for the title VISION BOARD 2025 in a papercut or handwritten style at the top center.",
-        "No category names, labels, or captions.",
-        "For any people shown, use stylized faceless mannequins, silhouettes, or back facing figures only and avoid eyes, mouths, or realistic facial features.",
-        "",
-        "Use visual storytelling and metaphor to reflect the user’s actual goals:",
+        "Generate a single high-resolution vision board collage for the year 2025.",
+        "Design the layout like a real world handmade vision board or scrapbook.",
+        "Pastel tones, paper cutouts, natural textures. No category labels or captions.",
+        "Use visual storytelling that reflects the user’s goals:",
         ...bullets,
-        "",
-        "Place the visuals in an artistic, balanced collage format with natural overlaps, layers, and taped corners. Avoid a grid or boxy layout.",
-        "Avoid empty space. The collage should feel complete, intentional, and curated.",
-        "",
-        "Use props like flowers, Polaroid borders, pins, tape, torn paper, plants, and paint swatches to decorate the layout without cluttering the main visuals.",
-        "",
-        "The result should look like a physical collage made by someone manifesting their dream life in 2025.",
-        "",
-        "Style keywords: vision board, soft scrapbook, handmade, pastel aesthetic, Pinterest layout, cozy, faceless figures, realistic objects, metaphors, matte finish, layered textures.",
       ].join("\n");
 
-      // keep for the next page
       sessionStorage.setItem("visbo:lastPrompt", prompt);
       sessionStorage.setItem("visbo:lastGoals", JSON.stringify(goals));
       sessionStorage.setItem("visbo:lastCategories", JSON.stringify(categories));
 
-      // If you want a query param as a fallback, pass a short token:
-      router.push("/board");
+      router.push("/step-3");
     } finally {
       setLoading(false);
     }
@@ -174,11 +146,11 @@ export default function Page() {
 
       <div className="mt-6 text-right pt-[1%]">
         <button
-          onClick={handleSubmit}
+          onClick={handleNext}
           disabled={loading}
-          className="hover:bg-[#FF4F87] bg[#FF6021] bg-[#FF6021] text-white font-light py-3 px-6 rounded-3xl disabled:opacity-50"
+          className="hover:bg-[#FF4F87] bg-[#FF6021] text-white font-light py-3 px-6 rounded-3xl disabled:opacity-50"
         >
-          {loading ? "Preparing…" : "Generate Visbo"}
+          {loading ? "Saving…" : "Next →"}
         </button>
       </div>
     </div>

@@ -80,7 +80,7 @@ async function getWebBuffers(cat: string, goal: string | undefined, n: number, s
     const b = await fetchToBuffer(u);
     if (!b) continue;
     const h = sha1(b);
-    if (seen.has(h)) continue; // dedupe exact image content
+    if (seen.has(h)) continue;
     seen.add(h);
     out.push(b);
     if (out.length >= n) break;
@@ -121,10 +121,18 @@ async function genOne(prompt: string): Promise<Buffer | null> {
 }
 
 /* --------------------------------- composer -------------------------------- */
+
+function pickCols(total: number) {
+  if (total <= 8) return 3;
+  if (total <= 16) return 4;
+  if (total <= 25) return 5;
+  return 6;
+}
+
 /** Tight grid with tiny bleed to hide seams. No borders, no overlap. */
 async function composeGrid(boardW: number, boardH: number, imgs: Buffer[]) {
   const total = imgs.length;
-  const cols = total <= 8 ? 3 : total <= 16 ? 4 : total <= 25 ? 5 : 6;
+  const cols = pickCols(total);
   const rows = Math.ceil(total / cols);
 
   const bleed = 4;
@@ -157,9 +165,9 @@ type PlanItem = { category: string; web: number; ai: boolean };
 type Body = {
   categories: string[];
   goals?: Record<string, string>;
-  plan?: PlanItem[];        // explicit per-category counts
-  webPerCategory?: number;  // fallback path
-  genPerCategory?: number;  // fallback path
+  plan?: PlanItem[];
+  webPerCategory?: number;
+  genPerCategory?: number;
   boardWidth?: number;
   boardHeight?: number;
   layout?: "grid";
@@ -188,7 +196,6 @@ export async function POST(req: NextRequest) {
     let genCount = 0;
 
     if (Array.isArray(plan) && plan.length) {
-      // Honor per-category plan (1–2 web each; AI for alternating categories)
       for (const item of plan) {
         if (!item?.category) continue;
         const goal = typeof goals[item.category] === "string" ? goals[item.category] : undefined;
@@ -209,11 +216,9 @@ export async function POST(req: NextRequest) {
             }
           }
         }
-
         if (sources.length >= maxTiles) break;
       }
     } else {
-      // Fallback uniform behavior if no plan supplied
       for (const cat of categories) {
         const goal = typeof goals[cat] === "string" ? goals[cat] : undefined;
 
@@ -234,6 +239,30 @@ export async function POST(req: NextRequest) {
         }
         if (sources.length >= maxTiles) break;
       }
+    }
+
+    // ---- TOP-UP: ensure last grid row is completely filled ----
+    const colsNow = pickCols(sources.length);
+    const rowsNow = Math.ceil(sources.length / colsNow);
+    let need = colsNow * rowsNow - sources.length; // 0..(cols-1)
+
+    // round-robin extra web pulls
+    let idx = 0;
+    while (need > 0 && idx < 100) {
+      const cat = plan?.[idx % (plan.length || 1)]?.category ?? categories[idx % categories.length];
+      const goal = typeof goals[cat] === "string" ? goals[cat] : undefined;
+      const more = await getWebBuffers(cat, goal, 1, seen);
+      if (more[0]) {
+        sources.push(more[0]);
+        webCount++;
+        need--;
+      }
+      idx++;
+    }
+    // still short? duplicate oldest tiles (safe visual filler)
+    while (need > 0 && sources.length > 0) {
+      sources.push(Buffer.from(sources[sources.length - need - 1]));
+      need--;
     }
 
     if (sources.length === 0) {
