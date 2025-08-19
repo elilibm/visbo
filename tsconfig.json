@@ -18,10 +18,22 @@
         "name": "next"
       }
     ],
+    
+      "compilerOptions": {
+        "paths": {
+          "@lib/*": ["./lib/*"]  // Adjust if lib is elsewhere
+        }
+      },
     "paths": {
       "@/*": ["./*"]
-    }
+    },
+
+    "baseUrl": ".",
+    "types": ["node", "jest", "@testing-library/jest-dom", "@testing-library/react"]
+  
+    
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "types/**/*.d.ts"],
   "exclude": ["node_modules"]
+  
 }
