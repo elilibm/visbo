@@ -1,6 +1,6 @@
 import clientPromise from "@/lib/mongo";  // Adjust path if needed (your lib/mongo.ts)
 import { NextResponse } from "next/server";
-import { compare } from "bcrypt";  // Import compare for password verification
+import { compare} from "bcryptjs";
 
 export async function POST(req: Request) {
   const { email, password } = await req.json();
