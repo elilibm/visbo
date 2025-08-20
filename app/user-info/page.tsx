@@ -1,26 +1,30 @@
-import { auth, signOut } from "../../auth"
-import React from "react"
+"use client";
 
-export default async function Home() {
-  const session = await auth()
+import { useSession, signOut } from "next-auth/react";
+import Link from "next/link";
+
+export default function UserInfoPage() {
+  const { data: session, status } = useSession();
+
+  if (status === "loading") {
+    return <main className="p-8">Loading...</main>;
+  }
 
   return (
     <main className="p-8">
       {!session ? (
-        <a className="underline" href="/login">Login</a>
+        <Link className="underline" href="/login">Login</Link>
       ) : (
         <div className="space-y-2">
           <div>Hello {session.user?.name ?? session.user?.email}</div>
-          <form
-            action={async () => {
-              "use server"
-              await signOut({ redirectTo: "/login" })
-            }}
+          <button
+            className="border p-2 rounded"
+            onClick={() => signOut({ callbackUrl: "/login" })}
           >
-            <button className="border p-2 rounded" type="submit">Sign out</button>
-          </form>
+            Sign out
+          </button>
         </div>
       )}
     </main>
-  )
+  );
 }
