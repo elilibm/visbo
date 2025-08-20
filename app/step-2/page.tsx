@@ -1,9 +1,8 @@
 // app/step-2/page.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import React from "react";
 
 const defaultCategories: string[] = [
   "personal growth",
@@ -16,11 +15,14 @@ const defaultCategories: string[] = [
   "hobbies",
 ];
 
-export default function Page() {
-  const params = useSearchParams();
+function Step2Inner() {
+  const params = useSearchParams(); // now safely inside Suspense
   const router = useRouter();
 
   const [categories, setCategories] = useState<string[]>(defaultCategories);
+  const [goals, setGoals] = useState<Record<string, string>>({});
+  const [status, setStatus] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     let picked: unknown = null;
@@ -42,10 +44,6 @@ export default function Page() {
     }
   }, [params]);
 
-  const [goals, setGoals] = useState<Record<string, string>>({});
-  const [status, setStatus] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(false);
-
   const handleChange = (cat: string, val: string) => {
     setGoals((p) => ({ ...p, [cat]: val }));
     const len = val.trim().length;
@@ -58,11 +56,9 @@ export default function Page() {
   const css = (s?: string) =>
     s === "valid" ? "bg-[#C4EDEE]" : s === "invalid" ? "bg-[#FFDFE9]" : "bg-[#F5F5F5]";
 
-  // Save and go to Step 3 (Title)
   const handleNext = async () => {
     setLoading(true);
     try {
-      // Build a prompt as before (kept for backwards compatibility / fallback)
       const bullets = categories.map((cat) => {
         const goal = goals[cat]?.trim() || "no specific goal provided";
         return `• ${cat.toUpperCase()}: ${goal}`;
@@ -155,5 +151,13 @@ export default function Page() {
         </button>
       </div>
     </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={null}>
+      <Step2Inner />
+    </Suspense>
   );
 }
