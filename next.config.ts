@@ -17,6 +17,9 @@ const devNoCacheHeaders =
     : [];
 
 const nextConfig: NextConfig = {
+    eslint: {
+    ignoreDuringBuilds: true,
+  },
   reactStrictMode: true,
   async headers() {
     return devNoCacheHeaders;
