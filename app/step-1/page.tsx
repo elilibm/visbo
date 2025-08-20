@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import React from "react";
 
 const defaultCategories = [
   "personal growth",

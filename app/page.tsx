@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import Link from "next/link";
+import React from "react";
+import AuthButtons from "../components/AuthButtons";
 
 const images = Array.from({ length: 9 }, (_, i) => `image-${i}`);
 
@@ -32,12 +34,10 @@ export default function LandingZoomAnimation() {
       columns[i % 3].push(img);
     });
 
-    // Start slightly shifted
     gsap.set(columns[0], { y: -30 });
     gsap.set(columns[1], { y: 20 });
     gsap.set(columns[2], { y: -20 });
 
-    // Slide into position
     gsap.to([columns[0], columns[1], columns[2]], {
       y: 0,
       duration: 1.2,
@@ -45,14 +45,12 @@ export default function LandingZoomAnimation() {
       delay: 0.2
     });
 
-    // After they settle, zoom into center image
     gsap.delayedCall(1.5, () => {
       if (!container || !centerImage) return;
 
       const rect = centerImage.getBoundingClientRect();
       const scaleX = window.innerWidth / rect.width;
       const scaleY = window.innerHeight / rect.height;
-      // extra zoom to hide borders entirely
       const scaleFactor = Math.max(scaleX, scaleY) * 1.05;
 
       const xOffset = window.innerWidth / 2 - (rect.left + rect.width / 2);
@@ -92,20 +90,20 @@ export default function LandingZoomAnimation() {
             `${!isLastCol ? "border-r-[4px]" : ""} ` +
             `${!isLastRow ? "border-b-[4px]" : ""} border-white`;
 
-          return (
-            <div
-              key={idx}
-              className={`image w-full h-full bg-white flex items-center justify-center overflow-hidden ${borders}`}
-              ref={idx === 4 ? centerImageRef : null}
-              style={{ boxSizing: "border-box" }}
-            >
-              <img
-                src={idx === 4 ? "/img/langingaltbg.jpg" : `/img/${id}.jpg`}
-                alt={id}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          );
+        return (
+          <div
+            key={idx}
+            className={`image w-full h-full bg-white flex items-center justify-center overflow-hidden ${borders}`}
+            ref={idx === 4 ? centerImageRef : null}
+            style={{ boxSizing: "border-box" }}
+          >
+            <img
+              src={idx === 4 ? "/img/langingaltbg.jpg" : `/img/${id}.jpg`}
+              alt={id}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        );
         })}
       </div>
 
@@ -124,14 +122,8 @@ export default function LandingZoomAnimation() {
         ref={logoRef}
         className="absolute top-6 left-6 z-50 opacity-0 translate-y-4"
       >
-        <svg
-          width="27"
-          height="27"
-          viewBox="0 0 46 43"
-          fill="#BFF9FF"
-          xmlns="http://www.w3.org/2000/svg"
-          className="w-full h-full"
-        >
+        {/* svg unchanged */}
+        <svg width="27" height="27" viewBox="0 0 46 43" fill="#BFF9FF" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
           <path d="M22.5 43L3.01443 21.25L41.9856 21.25L22.5 43Z" />
           <path d="M22.7681 12.1316C22.7681 10.5384 22.478 8.96089 21.9142 7.48902C21.3504 6.01715 20.524 4.67978 19.4823 3.55325C18.4406 2.42673 17.2038 1.53313 15.8427 0.923461C14.4817 0.313792 13.0228 0 11.5496 0 10.0764 0 8.61754 0.313792 7.25645 0.923461 5.89535 1.53313 4.65863 2.42673 3.61689 3.55326 2.57515 4.67978 1.7488 6.01715 1.18502 7.48902 0.621231 8.96089 0.331055 10.5384 0.331055 12.1316L11.5496 12.1316H22.7681Z" />
           <path d="M45.2056 12.1316C45.2056 10.5384 44.9155 8.96089 44.3517 7.48902 43.7879 6.01715 42.9615 4.67978 41.9198 3.55325 40.8781 2.42673 39.6413 1.53313 38.2802 0.923461 36.9192 0.313792 35.4603 0 33.9871 0 32.5139 0 31.055 0.313792 29.6939 0.923461 28.3329 1.53313 27.0961 2.42673 26.0544 3.55326 25.0127 4.67978 24.1863 6.01715 23.6225 7.48902 23.0587 8.96089 22.7686 10.5384 22.7686 12.1316L33.9871 12.1316H45.2056Z" />
@@ -139,23 +131,12 @@ export default function LandingZoomAnimation() {
         </svg>
       </div>
 
-      {/* Auth buttons */}
+      {/* Auth buttons — keep only this block */}
       <div
         ref={authButtonsRef}
         className="absolute top-6 right-7 z-50 flex items-center space-x-5 font-dmsans opacity-0 translate-y-4"
       >
-        <Link
-          href="/home"
-          className="bg-[#FF6021] text-white font-light py-2 px-5 rounded-full shadow text-sm hover:brightness-110 transition"
-        >
-          Sign Up
-        </Link>
-        <Link
-          href="/home"
-          className="text-[#BFF9FF] font-light underline text-sm"
-        >
-          Log In
-        </Link>
+        <AuthButtons />
       </div>
     </div>
   );

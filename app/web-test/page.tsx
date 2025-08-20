@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import React from "react";
 
 export default function WebTestPage() {
   const router = useRouter();

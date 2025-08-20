@@ -1,21 +1,53 @@
 "use client";
 
 import Link from "next/link";
+import React, { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export default function HomePage() {
-  const name = "Elili"; // replace with session/user data when wired up
+  const router = useRouter();
+  const { data: session, status } = useSession();
+  const [displayName, setDisplayName] = useState<string>("Elili"); // default while loading
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function load() {
+      // If not authenticated, keep default name or show generic
+      if (status !== "authenticated") return;
+
+      const res = await fetch("/api/me", { cache: "no-store" });
+      if (!res.ok) return;
+
+      const { user } = await res.json();
+      if (ignore) return;
+
+      // If user exists but has no username -> send to setup
+      if (user && !user.username) {
+        router.push("/setup");
+        return;
+      }
+
+      // Prefer username; fallback to NextAuth name; fallback to generic
+      const name = user?.username || session?.user?.name || "Friend";
+      setDisplayName(name);
+    }
+
+    load();
+    return () => {
+      ignore = true;
+    };
+  }, [status, session, router]);
 
   return (
     <div className="relative w-screen min-h-screen bg-white overflow-hidden">
       <div
-  className="absolute inset-0 bg-no-repeat 
-             sm:pt-[70%] sm:bg-[length:70%] sm:bg-[position:-20%_-5%]
-             pt-[20%] bg-[length:110%] bg-center"
-  style={{
-    backgroundImage: "url('/img/light-bulb.png')"
-  }}
-></div>
-
+        className="absolute inset-0 bg-no-repeat 
+                   sm:pt-[70%] sm:bg-[length:70%] sm:bg-[position:-20%_-5%]
+                   pt-[20%] bg-[length:110%] bg-center"
+        style={{ backgroundImage: "url('/img/light-bulb.png')" }}
+      />
       <div className="absolute top-6 left-6 z-50">
         <svg
           width="27"
@@ -33,33 +65,32 @@ export default function HomePage() {
       </div>
 
       {/* CONTENT */}
-     <div className="flex justify-center">
-      <section className="relative z-10 mx-auto max-w-6xl px-6 pt-[18%]">
-  <div className="max-w-3xl">
-    <h1 className="dmsans text-4xl font-bold tracking-[-0.02em]">
-      Welcome back <span className="text-[#FF6021]">{name}</span>.
-    </h1>
-    <p className="dmsans mt-2 text-neutral-600 text-md font-light ">
-      Ready to make your dreams a reality?
-    </p>
-  </div>
+      <div className="flex justify-center">
+        <section className="relative z-10 mx-auto max-w-6xl px-6 pt-[18%]">
+          <div className="max-w-3xl">
+            <h1 className="dmsans text-4xl font-bold tracking-[-0.02em]">
+              Welcome back <span className="text-[#FF6021]">{displayName}</span>.
+            </h1>
+            <p className="dmsans mt-2 text-neutral-600 text-md font-light ">
+              Ready to make your dreams a reality?
+            </p>
+          </div>
 
-  {/* ACTION CARDS */}
-  <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-7 max-w-3xl">
-    <HomeCard
-      href="/step-1"
-      title="Generate"
-      subtitle="Create your vision instantly."
-    />
-    <HomeCard
-      href="/step-2"
-      title="All Boards"
-      subtitle="Where past, present and future meet."
-    />
-  </div>
-</section>
-</div>
-
+          {/* ACTION CARDS */}
+          <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-7 max-w-3xl">
+            <HomeCard
+              href="/step-1"
+              title="Generate"
+              subtitle="Create your vision instantly."
+            />
+            <HomeCard
+              href="/boards"  // <- send to real Boards page
+              title="All Boards"
+              subtitle="Where past, present and future meet."
+            />
+          </div>
+        </section>
+      </div>
     </div>
   );
 }
@@ -77,28 +108,26 @@ function HomeCard({
     <Link
       href={href}
       className="group relative rounded-2xl bg-gradient-to-b from-white/70 to-[#F5F5F5] px-20 py-6"
-      style={{
-        borderWidth: "0.5px",                     
-        borderStyle: "solid",              
-        borderColor: "#D9D9D9" 
-  }}
+      style={{ borderWidth: "0.5px", borderStyle: "solid", borderColor: "#D9D9D9" }}
     >
       <div className="flex items-center justify-between gap-6">
         <div className="pt-[10%] -ml-14">
           <h3 className="text-lg font-normal text-black">{title}</h3>
           <p className="dmsans mt-0.5 text-xs text-neutral-500 font-light">{subtitle}</p>
         </div>
-        
         <div className="absolute bottom-6 right-6 z-50">
-        <svg 
-          xmlns="http://www.w3.org/2000/svg" 
-          width="24" 
-          height="24" 
-          viewBox="0 0 24 24">
-            <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M7 7h10m0 0v10m0-10L7 17" stroke-width="1"/>
-            </svg>
-          </div>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+            <path
+              fill="none"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M7 7h10m0 0v10m0-10L7 17"
+              strokeWidth={1}
+            />
+          </svg>
+        </div>
       </div>
-       </Link>
+    </Link>
   );
 }

@@ -1,9 +1,14 @@
 // app/board/page.tsx
 "use client";
 
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import React from "react";
+// app/boards/page.tsx
+
+
 
 type GoalsMap = Record<string, string>;
 type PlanItem = { category: string; web: number; ai: boolean };
@@ -17,6 +22,7 @@ const FONT_FAMILY =
 
 export default function BoardPage() {
   const router = useRouter();
+  
 
   const [imgUrl, setImgUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -29,6 +35,7 @@ export default function BoardPage() {
     "meta SWE",
     "queen",
     "nothing is impossible",
+    
   ]);
 
   useEffect(() => {
