@@ -24,7 +24,7 @@ export default function Page() {
 
   useEffect(() => {
     let picked: unknown = null;
-    const raw = params.get("cats");
+    const raw = params?.get("cats") ?? null;
     try {
       if (raw) picked = JSON.parse(decodeURIComponent(raw));
     } catch {}

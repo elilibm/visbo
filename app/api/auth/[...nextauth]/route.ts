@@ -19,4 +19,5 @@ const handler = NextAuth({
   secret: process.env.AUTH_SECRET, // required in prod
 })
 
+export const runtime = "nodejs"
 export { handler as GET, handler as POST }

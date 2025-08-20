@@ -1,7 +1,11 @@
 // middleware.ts
-export { auth as middleware } from "./auth";
+import { withAuth } from "next-auth/middleware";
+
+export default withAuth({
+  pages: { signIn: "/login" }, // optional
+  // callbacks: { authorized: ({ token }) => !!token } // optional
+});
 
 export const config = {
-  matcher: ["/boards/:path*"], // protect everything under /boards
+  matcher: ["/boards/:path*"],
 };
-
