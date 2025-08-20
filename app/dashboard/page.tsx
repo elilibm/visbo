@@ -1,12 +1,12 @@
+// app/dashboard/page.tsx
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../api/auth/[...nextauth]/route";
+import { auth } from "../../auth";
 
-export const dynamic = "force-dynamic"; // do not prerender
-export const runtime = "nodejs";        // ensure Node runtime
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export default async function Dashboard() {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   if (!session) redirect("/login");
   return <div className="p-8">Private dashboard</div>;
 }
