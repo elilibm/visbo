@@ -1,6 +1,6 @@
 // app/dashboard/page.tsx
 import { redirect } from "next/navigation";
-import { auth } from "../../auth";
+import { auth } from "../api/auth";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";

@@ -1,41 +1,34 @@
 // app/board/page.tsx
 "use client";
 
-
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React from "react";
-// app/boards/page.tsx
-
-
 
 type GoalsMap = Record<string, string>;
 type PlanItem = { category: string; web: number; ai: boolean };
 type Badge = { text: string; leftPct: number; topPct: number; isTitle?: boolean };
 
-// unified typography (preview + download)
-const TITLE_FONT_FRAC_OF_WIDTH = 0.046; // bold, smaller
-const LABEL_FONT_FRAC_OF_WIDTH = 0.020; // light, smaller
+const TITLE_FONT_FRAC_OF_WIDTH = 0.046;
+const LABEL_FONT_FRAC_OF_WIDTH = 0.020;
 const FONT_FAMILY =
   "'DM Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial";
 
 export default function BoardPage() {
   const router = useRouter();
-  
 
   const [imgUrl, setImgUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  // client-only title/labels
   const [boardTitle, setBoardTitle] = useState("Vision Board 2025");
   const [boardLabels, setBoardLabels] = useState<string[]>([
     "rich era",
     "meta SWE",
     "queen",
     "nothing is impossible",
-    
   ]);
 
   useEffect(() => {
@@ -117,7 +110,7 @@ export default function BoardPage() {
     run();
   }, [router]);
 
-  /* -------------------- overlay badges (even rings, no overlap) -------------------- */
+  /* -------------------- overlay badges -------------------- */
   const [badges, setBadges] = useState<Badge[]>([]);
   const imgRef = useRef<HTMLImageElement | null>(null);
   const [dispW, setDispW] = useState(0);
@@ -143,7 +136,6 @@ export default function BoardPage() {
     const placed: Badge[] = [{ text: boardTitle, leftPct: 50, topPct: 50, isTitle: true }];
 
     if (n > 0) {
-      // two rings if needed
       const firstCount = Math.min(n, 8);
       const secondCount = Math.max(0, n - firstCount);
 
@@ -157,14 +149,13 @@ export default function BoardPage() {
           x = Math.max(6, Math.min(94, x));
           y = Math.max(8, Math.min(92, y));
           placed.push({
-            text: boardLabels[placed.length - 1], // next label
+            text: boardLabels[placed.length - 1],
             leftPct: x,
             topPct: y,
           });
         }
       };
 
-      // outer & inner ring (slight offset so they don't stack)
       placeRing(firstCount, 30, (boardTitle.length % 360) * (Math.PI / 180));
       if (secondCount > 0) {
         placeRing(secondCount, 40, ((boardTitle.length * 7) % 360) * (Math.PI / 180) + Math.PI / 10);
@@ -174,7 +165,7 @@ export default function BoardPage() {
     setBadges(placed);
   }, [imgUrl, boardLabels, boardTitle]);
 
-  /* ------------------------ download: perfect vertical center ----------------------- */
+  /* ------------------------ download ----------------------- */
   const sanitizeFilename = (s: string) =>
     (s.trim().replace(/[^\w\d-_ ]+/g, "").replace(/\s+/g, "-").slice(0, 80) || "vision-board");
 
@@ -194,8 +185,8 @@ export default function BoardPage() {
 
     const titleFontPx = Math.max(26, Math.round(W * TITLE_FONT_FRAC_OF_WIDTH));
     const labelFontPx = Math.max(14, Math.round(W * LABEL_FONT_FRAC_OF_WIDTH));
-    const titlePadX = Math.round(titleFontPx * 0.80);
-    const titlePadY = Math.round(titleFontPx * 0.40);
+    const titlePadX = Math.round(titleFontPx * 0.8);
+    const titlePadY = Math.round(titleFontPx * 0.4);
     const labelPadX = Math.round(labelFontPx * 0.75);
     const labelPadY = Math.round(labelFontPx * 0.38);
 
@@ -240,10 +231,10 @@ export default function BoardPage() {
       const fontPx = isTitle ? titleFontPx : labelFontPx;
       const padX = isTitle ? titlePadX : labelPadX;
       const padY = isTitle ? titlePadY : labelPadY;
-      const weight: "700" | "300" = isTitle ? "700" : "300"; // title bold, labels light
+      const weight: "700" | "300" = isTitle ? "700" : "300";
 
       const maxBlock = (isTitle ? 0.48 : 0.34) * W;
-      const lineGap = Math.round(fontPx * 0.18); // match CSS line-height ≈1.18
+      const lineGap = Math.round(fontPx * 0.18);
       const lines = wrapLines(text, fontPx, maxBlock - padX * 2, weight);
 
       ctx.font = `${weight} ${fontPx}px ${FONT_FAMILY}`;
@@ -265,11 +256,10 @@ export default function BoardPage() {
       ctx.fill();
       ctx.restore();
 
-      // exact vertical centering inside the box
       ctx.fillStyle = WHITE;
-      ctx.textBaseline = "top"; // use 'top' so our math matches CSS closely
+      ctx.textBaseline = "top";
       ctx.font = `${weight} ${fontPx}px ${FONT_FAMILY}`;
-      let yCur = y + padY + (boxH - (textH + padY * 2)) / 2; // center the block
+      let yCur = y + padY + (boxH - (textH + padY * 2)) / 2;
       for (const ln of lines) {
         const w = ctx.measureText(ln).width;
         ctx.fillText(ln, x + (boxW - w) / 2, yCur);
@@ -286,22 +276,63 @@ export default function BoardPage() {
     }
 
     const a = document.createElement("a");
-    a.href = canvas.toDataURL("image/png");
+    a.href = (document.querySelector("canvas") as HTMLCanvasElement)?.toDataURL?.("image/png") ?? "";
     a.download = `${sanitizeFilename(boardTitle)}.png`;
     document.body.appendChild(a);
     a.click();
     a.remove();
   }
 
-  const showError = !loading && (!!err || !imgUrl);
+  // Make a ~480px-wide thumbnail to store alongside the full image
+  async function buildThumbnail(fullUrl: string): Promise<string> {
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const el = new Image();
+      el.crossOrigin = "anonymous";
+      el.onload = () => resolve(el);
+      el.onerror = reject;
+      el.src = fullUrl;
+    });
 
-  // preview sizing
-  const titlePxPrev = Math.max(18, Math.round(dispW * TITLE_FONT_FRAC_OF_WIDTH));
-  const labelPxPrev = Math.max(12, Math.round(dispW * LABEL_FONT_FRAC_OF_WIDTH));
-  const titlePadXPrev = Math.round(titlePxPrev * 0.80);
-  const titlePadYPrev = Math.round(titlePxPrev * 0.40);
-  const labelPadXPrev = Math.round(labelPxPrev * 0.75);
-  const labelPadYPrev = Math.round(labelPxPrev * 0.38);
+    const maxW = 480;
+    const scale = Math.min(1, maxW / (img.naturalWidth || img.width || maxW));
+    const W = Math.round((img.naturalWidth || img.width) * scale);
+    const H = Math.round((img.naturalHeight || img.height) * scale);
+
+    const canvas = document.createElement("canvas");
+    canvas.width = W;
+    canvas.height = H;
+    const ctx = canvas.getContext("2d")!;
+    ctx.drawImage(img, 0, 0, W, H);
+
+    return canvas.toDataURL("image/jpeg", 0.7);
+  }
+
+  async function handleSave() {
+    if (!imgUrl || saving) return;
+    setSaving(true);
+    try {
+      const thumb = await buildThumbnail(imgUrl);
+      const res = await fetch("/api/boards", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: boardTitle,
+          labels: boardLabels,
+          image: imgUrl,
+          thumb,
+        }),
+      });
+      const txt = await res.text();
+      if (!res.ok) throw new Error(txt || `HTTP ${res.status}`);
+      window.location.href = "/boards";
+    } catch (e: any) {
+      alert(`Save failed: ${e?.message ?? e}`);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const showError = !loading && (!!err || !imgUrl);
 
   return (
     <div className="min-h-screen bg-white pr-[20%] pl-[20%] pt-[6%] pb-[5%]">
@@ -323,7 +354,7 @@ export default function BoardPage() {
         <div className="relative w-full max-w-3xl bg-[#EFEFEF] rounded-3xl p-4 flex items-center justify-center">
           {loading && <div className="w-full aspect-[3/4] rounded-2xl bg-[#E5E5E5] animate-pulse" />}
 
-          {showError && (
+          {!loading && showError && (
             <div className="p-6 text-center text-[#FF6021] font-light">
               Error generating board. Contact elili.sivam@gmail.com
             </div>
@@ -344,19 +375,15 @@ export default function BoardPage() {
                 }
               />
 
-              {/* Orange overlays: flat rectangles, DM Sans; bold title / light labels */}
+              {/* Orange overlays */}
               <div className="pointer-events-none absolute inset-4">
                 {badges.map((b, idx) => {
                   const isTitle = !!b.isTitle;
                   const fontSize = isTitle
                     ? Math.max(18, Math.round(dispW * TITLE_FONT_FRAC_OF_WIDTH))
                     : Math.max(12, Math.round(dispW * LABEL_FONT_FRAC_OF_WIDTH));
-                  const padX = isTitle
-                    ? Math.round(fontSize * 0.8)
-                    : Math.round(fontSize * 0.75);
-                  const padY = isTitle
-                    ? Math.round(fontSize * 0.4)
-                    : Math.round(fontSize * 0.38);
+                  const padX = isTitle ? Math.round(fontSize * 0.8) : Math.round(fontSize * 0.75);
+                  const padY = isTitle ? Math.round(fontSize * 0.4) : Math.round(fontSize * 0.38);
                   const maxW = Math.max(120, dispW * (isTitle ? 0.48 : 0.34));
 
                   return (
@@ -395,9 +422,17 @@ export default function BoardPage() {
         <button
           onClick={handleDownload}
           disabled={!imgUrl || showError}
-          className="bg-[#FF6021] hover:bg-[#FF4F87] text-white font-light py-2.5 px-6 rounded-3xl disabled:opacity-50"
+          className="bg-[#FF6021] hover:bg-[#FF4F87] text-white font-light py-2.5 px-6 rounded-3xl disabled:opacity-50 cursor-pointer"
         >
           Download
+        </button>
+
+        <button
+          onClick={handleSave}
+          disabled={!imgUrl || saving}
+          className="bg-neutral-900 hover:bg-black text-white font-light py-2.5 px-6 rounded-3xl disabled:opacity-50 cursor-pointer"
+        >
+          {saving ? "Saving..." : "Save"}
         </button>
 
         <Link href="/boards" className="bg-black text-white font-light py-2.5 px-6 rounded-3xl">
