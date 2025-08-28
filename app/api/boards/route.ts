@@ -1,8 +1,8 @@
 // app/api/boards/[id]/route.ts
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse } from "next/server"; 
 import clientPromise from "@/lib/mongo";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../auth.config"; // keep your existing pathing
+import { authOptions } from "../../auth.config";
 import { ObjectId } from "mongodb";
 
 export const runtime = "nodejs";
@@ -26,16 +26,15 @@ async function requireUserEmail() {
   return email;
 }
 
-// ✅ Use `any` for the context parameter to satisfy Next's route signature validator
-export async function GET(_req: NextRequest, context: any) {
+// ✅ Route handler signature must be (request: Request, context: { params })
+export async function GET(
+  _req: Request,
+  { params }: { params: { id: string } }
+) {
   try {
-    const { params } = context ?? {};
-    const id: string | undefined = params?.id;
-
     const email = await requireUserEmail();
 
-    // Validate ObjectId early
-    if (!id || !ObjectId.isValid(id)) {
+    if (!params?.id || !ObjectId.isValid(params.id)) {
       return NextResponse.json({ error: "Invalid id" }, { status: 400 });
     }
 
@@ -43,8 +42,7 @@ export async function GET(_req: NextRequest, context: any) {
     const db = client.db(process.env.MONGODB_DB || undefined);
     const col = db.collection<BoardDoc>("boards");
 
-    const doc = await col.findOne({ _id: new ObjectId(id), userId: email });
-
+    const doc = await col.findOne({ _id: new ObjectId(params.id), userId: email });
     if (!doc) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
