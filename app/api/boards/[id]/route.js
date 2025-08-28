@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import clientPromise from "@/lib/mongo";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../auth.config";
+import { authOptions } from "../../../auth.config";
 import { ObjectId } from "mongodb";
 
 export const runtime = "nodejs";
