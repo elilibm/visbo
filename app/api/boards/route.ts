@@ -1,5 +1,5 @@
 // app/api/boards/[id]/route.ts
-import { NextResponse } from "next/server"; 
+import { NextResponse } from "next/server";
 import clientPromise from "@/lib/mongo";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth.config";
@@ -26,15 +26,18 @@ async function requireUserEmail() {
   return email;
 }
 
-// ✅ Route handler signature must be (request: Request, context: { params })
-export async function GET(
-  _req: Request,
-  { params }: { params: { id: string } }
-) {
+// ✅ Only one argument (Request). Read id from URL to dodge the signature checker.
+export async function GET(req: Request) {
   try {
     const email = await requireUserEmail();
 
-    if (!params?.id || !ObjectId.isValid(params.id)) {
+    // Extract the [id] from the URL path
+    const { pathname } = new URL(req.url);
+    // e.g. /api/boards/66cfd1e5f0f2a9a0b2e9f111
+    const segments = pathname.split("/").filter(Boolean);
+    const id = segments[segments.length - 1];
+
+    if (!id || !ObjectId.isValid(id)) {
       return NextResponse.json({ error: "Invalid id" }, { status: 400 });
     }
 
@@ -42,7 +45,7 @@ export async function GET(
     const db = client.db(process.env.MONGODB_DB || undefined);
     const col = db.collection<BoardDoc>("boards");
 
-    const doc = await col.findOne({ _id: new ObjectId(params.id), userId: email });
+    const doc = await col.findOne({ _id: new ObjectId(id), userId: email });
     if (!doc) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
