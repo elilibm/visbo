@@ -26,16 +26,14 @@ async function requireUserEmail() {
   return email;
 }
 
-// ✅ Only one argument (Request). Read id from URL to dodge the signature checker.
-export async function GET(req: Request) {
+// ✅ Only one parameter (Request). No context/params argument at all.
+export const GET = async (req: Request): Promise<Response> => {
   try {
     const email = await requireUserEmail();
 
-    // Extract the [id] from the URL path
+    // Extract `[id]` from the path: e.g. /api/boards/66d0e8... -> "66d0e8..."
     const { pathname } = new URL(req.url);
-    // e.g. /api/boards/66cfd1e5f0f2a9a0b2e9f111
-    const segments = pathname.split("/").filter(Boolean);
-    const id = segments[segments.length - 1];
+    const id = pathname.split("/").filter(Boolean).pop();
 
     if (!id || !ObjectId.isValid(id)) {
       return NextResponse.json({ error: "Invalid id" }, { status: 400 });
@@ -60,4 +58,4 @@ export async function GET(req: Request) {
     console.error("GET /api/boards/[id] error:", err);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
-}
+};
