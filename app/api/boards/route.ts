@@ -1,8 +1,9 @@
-// app/api/boards/route.ts
-import { NextResponse } from "next/server";
+// app/api/boards/[id]/route.ts
+import { NextResponse, type NextRequest } from "next/server";
 import clientPromise from "@/lib/mongo";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth.config";
+import { ObjectId } from "mongodb";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,70 +26,40 @@ async function requireUserEmail() {
   return email;
 }
 
-export async function GET() {
+// ✅ IMPORTANT: dynamic route handler signature must be (request, { params })
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
     const email = await requireUserEmail();
+
+    // Validate ObjectId early
+    if (!params?.id || !ObjectId.isValid(params.id)) {
+      return NextResponse.json({ error: "Invalid id" }, { status: 400 });
+    }
+
     const client = await clientPromise;
     const db = client.db(process.env.MONGODB_DB || undefined);
     const col = db.collection<BoardDoc>("boards");
 
-    // Exclude heavy image field from list to avoid memory issues
-    const docs = await col
-      .find({ userId: email }, { projection: { image: 0 } })
-      .sort({ updatedAt: -1 })
-      .limit(60)
-      .toArray();
-
-    const boards = docs.map((b: any) => ({ ...b, _id: b._id?.toString?.() ?? b._id }));
-    return NextResponse.json({ boards });
-  } catch (err: any) {
-    if (err?.message === "Unauthorized") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    console.error("GET /api/boards error:", err);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
-  }
-}
-
-export async function POST(req: Request) {
-  try {
-    const email = await requireUserEmail();
-
-    const body = await req.json().catch(() => null);
-    if (!body) return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
-
-    const { title, labels, image, thumb } = body as {
-      title?: string;
-      labels?: string[];
-      image?: string;
-      thumb?: string;
-    };
-    if (!image || typeof image !== "string") {
-      return NextResponse.json({ error: "Missing image" }, { status: 400 });
-    }
-
-    const now = new Date();
-    const doc: BoardDoc = {
+    const doc = await col.findOne({
+      _id: new ObjectId(params.id),
       userId: email,
-      title: (title ?? "Vision Board").slice(0, 140),
-      labels: Array.isArray(labels) ? labels.map(String).slice(0, 24) : [],
-      image,
-      thumb,
-      createdAt: now,
-      updatedAt: now,
-    };
+    });
 
-    const client = await clientPromise;
-    const db = client.db(process.env.MONGODB_DB || undefined);
-    const col = db.collection<BoardDoc>("boards");
+    if (!doc) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
 
-    const res = await col.insertOne(doc);
-    return NextResponse.json({ ok: true, id: res.insertedId.toString() });
+    return NextResponse.json({
+      board: { ...doc, _id: doc._id?.toString?.() ?? doc._id },
+    });
   } catch (err: any) {
     if (err?.message === "Unauthorized") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    console.error("POST /api/boards error:", err);
+    console.error("GET /api/boards/[id] error:", err);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
